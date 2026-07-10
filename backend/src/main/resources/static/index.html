@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link Shrinker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F6F8;
+    --surface: #FFFFFF;
+    --ink: #14171F;
+    --muted: #6B7280;
+    --accent: #2D5DF0;
+    --accent-soft: #E8EDFF;
+    --code: #0B8C7A;
+    --code-soft: #E3F7F3;
+    --border: #E4E6EB;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1.1;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  p.sub {
+    color: var(--muted);
+    margin: 0 0 28px;
+    font-size: 15px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 1px 2px rgba(20, 23, 31, 0.04);
+  }
+
+  #longUrl {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: 'JetBrains Mono', monospace;
+    background: transparent;
+    color: var(--ink);
+    min-width: 0;
+  }
+
+  #longUrl::placeholder { color: #A5A9B4; }
+
+  button {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+
+  button:hover { background: #244ecb; }
+  button:active { transform: scale(0.97); }
+  button:disabled { background: #A5AEDB; cursor: not-allowed; }
+
+  .error {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #C0392B;
+    font-family: 'JetBrains Mono', monospace;
+    display: none;
+  }
+
+  .result {
+    margin-top: 20px;
+    display: none;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    animation: rise 0.35s ease;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .link-mark {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--code-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .link-mark svg { width: 18px; height: 18px; }
+
+  .result-text { min-width: 0; flex: 1; }
+
+  .result-text a {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--code);
+    text-decoration: none;
+    word-break: break-all;
+  }
+
+  .result-text a:hover { text-decoration: underline; }
+
+  .result-text .from {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 3px;
+    word-break: break-all;
+  }
+
+  .copy-btn {
+    flex-shrink: 0;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 7px;
+  }
+
+  .copy-btn:hover { background: #d9e1ff; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .result { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="eyebrow">// url shortener</p>
+    <h1>Shrink a link.</h1>
+    <p class="sub">Paste a long URL. Get back a short one backed by a SHA-256 hash.</p>
+
+    <div class="input-row">
+      <input id="longUrl" type="text" placeholder="https://example.com/very/long/path?query=1" autocomplete="off">
+      <button id="shortenBtn">Shrink it</button>
+    </div>
+
+    <p class="error" id="errorMsg"></p>
+
+    <div class="result" id="result">
+      <div class="link-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0B8C7A" stroke-width="2" stroke-linecap="round">
+          <path d="M9 15l6-6"/>
+          <path d="M13 5l1.5-1.5a3.5 3.5 0 015 5L18 10"/>
+          <path d="M11 19l-1.5 1.5a3.5 3.5 0 01-5-5L6 14"/>
+        </svg>
+      </div>
+      <div class="result-text">
+        <a id="shortUrlLink" href="#" target="_blank" rel="noopener"></a>
+        <span class="from" id="fromUrl"></span>
+      </div>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('longUrl');
+    const btn = document.getElementById('shortenBtn');
+    const errorMsg = document.getElementById('errorMsg');
+    const result = document.getElementById('result');
+    const shortUrlLink = document.getElementById('shortUrlLink');
+    const fromUrl = document.getElementById('fromUrl');
+    const copyBtn = document.getElementById('copyBtn');
+
+    async function shorten() {
+      const longUrl = input.value.trim();
+      errorMsg.style.display = 'none';
+      result.style.display = 'none';
+
+      if (!longUrl) {
+        errorMsg.textContent = 'Enter a URL first.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Shrinking...';
+
+      try {
+        const res = await fetch('/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ longUrl })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorMsg.textContent = data.error || 'Something went wrong.';
+          errorMsg.style.display = 'block';
+          return;
+        }
+
+        shortUrlLink.href = data.shortUrl;
+        shortUrlLink.textContent = data.shortUrl;
+        fromUrl.textContent = longUrl;
+        result.style.display = 'flex';
+      } catch (e) {
+        errorMsg.textContent = 'Could not reach the server.';
+        errorMsg.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Shrink it';
+      }
+    }
+
+    btn.addEventListener('click', shorten);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') shorten();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(shortUrlLink.href);
+      copyBtn.textContent = 'Copied';
+      setTimeout(() => (copyBtn.textContent = 'Copy'), 1200);
+    });
+  </script>
+</body>
+</html>
