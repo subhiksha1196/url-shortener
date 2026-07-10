@@ -19,6 +19,12 @@ public class UrlShortenerController {
         this.service = service;
     }
 
+    // GET / - simple health check so the root URL doesn't 404/500
+    @GetMapping("/")
+    public String healthCheck() {
+        return "URL Shortener backend is running.";
+    }
+
     // POST /shorten - accepts a long URL, returns a unique short URL
     @PostMapping("/shorten")
     public UrlResponse shorten(@RequestBody UrlRequest request) {
