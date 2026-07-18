@@ -14,9 +14,11 @@ A full-stack URL shortener built with **Spring Boot** (backend) and **React (Vit
 
 A URL shortening service that takes a long URL and returns a compact, shareable short link, redirecting visitors back to the original destination.
 
-| Long URL Input | Shortened URL Result |
-|---|---|
-| ![Long URL input](./screenshots/long-url-input.png) | ![Shortened URL result](./screenshots/shortened-url-result.png) |
+**Long URL Input**
+![Long URL input](./screenshots/long-url-input.png)
+
+**Shortened URL Result**
+![Shortened URL result](./screenshots/shortened-url-result.png)
 
 ---
 
